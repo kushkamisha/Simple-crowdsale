@@ -257,9 +257,8 @@ contract Crowdsale is Ownable {
     uint openSaleTokens = 699000000;
     uint ourTokens = 101000000;
     uint restrictedPercentx10 = 301;
+    uint minPurchase = 1 ether;
     uint totalInvestment;
-    
-    bool isIssued = false;
     
     modifier saleIsOn() {
      require(now > start && now < start + period * 1 days);
@@ -276,12 +275,12 @@ contract Crowdsale is Ownable {
         _;
     }
     
-    modifier tokensNotIssued() {
-        require(isIssued == false);
+    modifier isOverMinPurchase() {
+        require(msg.value >= minPurchase);
         _;
     }
     
-    function() external saleIsOn isUnderHardCap payable {
+    function() external saleIsOn isUnderHardCap isOverMinPurchase payable {
         multisig.transfer(msg.value);
         investors[msg.sender] = msg.value;
         keys.push(msg.sender);
@@ -296,15 +295,15 @@ contract Crowdsale is Ownable {
         return totalInvestment;
     }
     
-    function createTokens() /*saleIsOut*/ onlyOwner tokensNotIssued payable {
+    function createTokens() /*saleIsOut*/ onlyOwner payable {
         for(uint i = 0; i < keys.length; i++) {
             token.mint(keys[i], investors[keys[i]].mul(openSaleTokens).div(totalInvestment));
         }
         // Our tokens
         token.mint(restricted, ourTokens);
         
-        // Change issue status
-        isIssued = true;
+        // Finish minting
+        token.finishMinting();
     }
 
 }
