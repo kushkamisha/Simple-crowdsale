@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity ^0.4.18;
 
 /**
  * @title ERC20Basic
@@ -242,8 +242,8 @@ contract SimpleTokenCoin is MintableToken {
 contract Crowdsale is Ownable {
     using SafeMath for uint; 
     
-    // address multisig;
-    // address restricted;
+    address multisig = 0x583031d1113ad414f02576bd6afabfb302140225; // store ETH investment
+    address restricted = 0xdd870fa1b7c4700f2bd7f44238821c26f7392148; // tokens for us
     
     mapping(address => uint) investors;
     address[] keys;
@@ -254,9 +254,12 @@ contract Crowdsale is Ownable {
     uint period = 30;
 
     uint hardcap = 100000 ether;
-    uint totalCoins = 1000000000;
+    uint openSaleTokens = 699000000;
+    uint ourTokens = 101000000;
+    uint restrictedPercentx10 = 301;
     uint totalInvestment;
-    // uint rate;
+    
+    bool isIssued = false;
     
     modifier saleIsOn() {
      require(now > start && now < start + period * 1 days);
@@ -273,9 +276,16 @@ contract Crowdsale is Ownable {
         _;
     }
     
+    modifier tokensNotIssued() {
+        require(isIssued == false);
+        _;
+    }
+    
     function() external saleIsOn isUnderHardCap payable {
+        multisig.transfer(msg.value);
         investors[msg.sender] = msg.value;
         keys.push(msg.sender);
+        totalInvestment += msg.value;
     }
     
     function getInvestment(address _investor) onlyOwner returns(uint) {
@@ -286,10 +296,15 @@ contract Crowdsale is Ownable {
         return totalInvestment;
     }
     
-    function createTokens() /*saleIsOut*/ onlyOwner payable {
+    function createTokens() /*saleIsOut*/ onlyOwner tokensNotIssued payable {
         for(uint i = 0; i < keys.length; i++) {
-            token.mint(keys[i], investors[keys[i]]);
+            token.mint(keys[i], investors[keys[i]].mul(openSaleTokens).div(totalInvestment));
         }
+        // Our tokens
+        token.mint(restricted, ourTokens);
+        
+        // Change issue status
+        isIssued = true;
     }
 
 }
