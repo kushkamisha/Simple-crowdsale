@@ -1,6 +1,9 @@
 pragma solidity ^0.4.18;
 
-
+/**
+ * @title ERC20Basic
+ * @dev Simple ERC20Basic contract
+ */
 contract ERC20Basic {
     uint256 public totalSupply;
     function balanceOf(address who) constant returns (uint256);
@@ -8,7 +11,10 @@ contract ERC20Basic {
     event Transfer(address indexed from, address indexed to, uint256 value);
 }
 
-
+/**
+ * @title ERC20
+ * @dev Additional features of ERC20Basic
+ */
 contract ERC20 is ERC20Basic {
     function allowance(address owner, address spender) constant returns (uint256);
     function transferFrom(address from, address to, uint256 value) returns (bool);
@@ -16,7 +22,10 @@ contract ERC20 is ERC20Basic {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-
+/**
+ * @title SafeMath
+ * @dev Simple math operations with safety checks, which can throw an error
+ */
 library SafeMath {
     
     function mul(uint256 a, uint256 b) internal constant returns (uint256) {
@@ -47,7 +56,10 @@ library SafeMath {
   
 }
 
-
+/**
+ * @title BasicToken
+ * @dev Basic version of StandardToken without allowances
+ */
 contract BasicToken is ERC20Basic {
     
     using SafeMath for uint256;
@@ -67,7 +79,10 @@ contract BasicToken is ERC20Basic {
 
 }
 
-
+/**
+ * @title StandardToken
+ * @dev Basic standard token
+ */
 contract StandardToken is ERC20, BasicToken {
 
     mapping (address => mapping (address => uint256)) allowed;
@@ -99,7 +114,10 @@ contract StandardToken is ERC20, BasicToken {
 
 }
 
-
+/**
+ * @title Ownable
+ * @dev Save owner address, provides only owner control and can transfer ownership
+ */
 contract Ownable {
     
     address public owner;
@@ -120,7 +138,10 @@ contract Ownable {
 
 }
 
-
+/**
+ * @title MintableToken
+ * @dev Simple ERC20 token with mintable functions
+ */
 contract MintableToken is StandardToken, Ownable {
     
     event Mint(address indexed to, uint256 amount);
@@ -148,7 +169,11 @@ contract MintableToken is StandardToken, Ownable {
   
 }
 
-contract SimpleTokenCoin is MintableToken {
+/**
+ * @title RNTtoken
+ * @dev Creates simple coin with name, symbol and number of decimals
+ */
+contract RNTtoken is MintableToken {
     
     string public constant name = "Bitrent";
     
@@ -158,6 +183,10 @@ contract SimpleTokenCoin is MintableToken {
     
 }
 
+/**
+ * @title Crowdsale
+ * @dev Contract for managing token crowdsale.
+ */
 contract Crowdsale is Ownable {
 
     using SafeMath for uint; 
@@ -168,17 +197,16 @@ contract Crowdsale is Ownable {
     mapping(address => uint) investors;
     address[] keys;
     
-    SimpleTokenCoin public token = new SimpleTokenCoin();
+    RNTtoken public token = new RNTtoken();
     
-    uint start = 1512129600;
-    uint period = 30;
+    uint public start = 1512129600;
+    uint public period = 30;
 
-    uint hardcap = 100000 ether;
-    uint openSaleTokens = 699000000;
-    uint ourTokens = 101000000;
-    uint restrictedPercentx10 = 301;
-    uint minPurchase = 0.01 ether;
-    uint totalInvestment;
+    uint public hardcap = 100000 ether;
+    uint public openSaleTokens = 699000000;
+    uint public ourTokens = 101000000;
+    uint public minPurchase = 0.01 ether;
+    uint public totalInvestment;
     
     modifier saleIsOn() {
        require(now > start && now < start + period * 1 days);
@@ -209,10 +237,6 @@ contract Crowdsale is Ownable {
     
     function getInvestment(address _investor) onlyOwner returns(uint) {
         return investors[_investor];
-    }
-    
-    function getTotalInvestment() onlyOwner returns(uint) {
-        return totalInvestment;
     }
     
     function createTokens() /*saleIsOut*/ onlyOwner payable {
