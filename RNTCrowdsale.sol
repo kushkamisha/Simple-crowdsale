@@ -184,29 +184,44 @@ contract RNTtoken is MintableToken {
 }
 
 /**
- * @title Crowdsale
- * @dev Contract for managing token crowdsale.
+ * @title MainSale
+ * @dev Contract for managing token main sale
  */
-contract Crowdsale is Ownable {
+contract MainSale is Ownable {
 
-    using SafeMath for uint; 
+    using SafeMath for uint;
     
-    address multisig = 0x583031d1113ad414f02576bd6afabfb302140225; // store ETH investment
-    address restricted = 0xdd870fa1b7c4700f2bd7f44238821c26f7392148; // tokens for us
+    address multisig; // stores ETH investment
+    address restricted; // tokens for us
     
     mapping(address => uint) investors;
     address[] keys;
     
     RNTtoken public token = new RNTtoken();
     
-    uint public start = 1512129600;
-    uint public period = 30;
+    uint public start;
+    uint public period;
 
-    uint public hardcap = 100000 ether;
-    uint public openSaleTokens = 699000000;
-    uint public ourTokens = 101000000;
-    uint public minPurchase = 0.01 ether;
+    uint public hardcap;
+    uint public openSaleTokens;
+    uint public ourTokens;
+    uint public minPurchase;
     uint public totalInvestment;
+    
+    function MainSale() {
+
+        multisig = 0x583031d1113ad414f02576bd6afabfb302140225;
+        restricted = 0xdd870fa1b7c4700f2bd7f44238821c26f7392148;
+
+        start = 1512129600;
+        period = 30;
+        
+        hardcap = 100000 ether;
+        openSaleTokens = 699000000;
+        ourTokens = 101000000;
+        minPurchase = 0.01 ether;
+
+    }
     
     modifier saleIsOn() {
        require(now > start && now < start + period * 1 days);
@@ -235,6 +250,11 @@ contract Crowdsale is Ownable {
         totalInvestment += msg.value;
     }
     
+    function transferOwnershipRNTtoken(address newOwner) onlyOwner {
+        require(newOwner != address(0));      
+        owner = newOwner;
+    }
+
     function getInvestment(address _investor) onlyOwner returns(uint) {
         return investors[_investor];
     }
