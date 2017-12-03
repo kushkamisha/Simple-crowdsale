@@ -183,6 +183,7 @@ contract RNTtoken is MintableToken {
     
 }
 
+
 /**
  * @title MainSale
  * @dev Contract for managing token main sale
@@ -194,8 +195,8 @@ contract MainSale is Ownable {
     address multisig; // stores ETH investment
     address restricted; // tokens for us
     
-    mapping(address => uint) investors;
     address[] keys;
+    mapping(address => uint) investors;
     
     RNTtoken public token = new RNTtoken();
     
@@ -243,10 +244,18 @@ contract MainSale is Ownable {
         _;
     }
     
+    function addInvestment() public {
+        if (investors[msg.sender] == 0) {
+            investors[msg.sender] = msg.value;
+            keys.push(msg.sender);
+        } else {
+            investors[msg.sender] += msg.value;
+        }
+    }
+    
     function() external saleIsOn isUnderHardCap isOverMinPurchase payable {
         multisig.transfer(msg.value);
-        investors[msg.sender] = msg.value;
-        keys.push(msg.sender);
+        addInvestment();
         totalInvestment += msg.value;
     }
     
